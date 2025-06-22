@@ -26,7 +26,7 @@ function injectDynamicRoutes(slugs: string[]): PluginOption {
           params: { slug },
           content: `\
 ---
-title: ${slug}
+description: This is the description for ${slug}
 ---
 
 # ${slug}
