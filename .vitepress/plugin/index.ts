@@ -5,15 +5,12 @@ import type { SiteConfig } from 'vitepress'
 export function injectDynamicRoutes(slugs: string[]): PluginOption {
   const route = resolve(__dirname, './[slug].md')
 
-  const routes = slugs.map((slug) => {
-    const path = `foo/${slug}.md`
-
-    return {
-      path,
-      route,
-      loaderPath: '/dev/null',
-      params: { slug },
-      content: `\
+  const routes = slugs.map((slug) => ({
+    path: `foo/${slug}.md`,
+    route,
+    loaderPath: '/dev/null',
+    params: { slug },
+    content: `\
 ---
 description: This is the description for ${slug}
 ---
@@ -22,8 +19,7 @@ description: This is the description for ${slug}
 
 This is the content for ${slug}
 `
-    }
-  })
+  }))
 
   const pages = routes.map((route) => route.path)
 
