@@ -3,6 +3,7 @@ import { type PluginOption } from 'vite'
 import { defineConfig, type SiteConfig } from 'vitepress'
 
 export default defineConfig({
+  cleanUrls: true,
   vite: {
     plugins: [injectDynamicRoutes(['bar', 'baz'])]
   }
@@ -23,7 +24,15 @@ function injectDynamicRoutes(slugs: string[]): PluginOption {
           route,
           loaderPath: '/dev/null',
           params: { slug },
-          content: `This is the content for ${slug}`
+          content: `\
+---
+title: ${slug}
+---
+
+# ${slug}
+
+This is the content for ${slug}
+`
         }))
       )
       siteConfig.__dirty = true

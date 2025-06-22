@@ -1,5 +1,3 @@
-# dynamic
-
 <!-- @content -->
 
 - [home](/)
