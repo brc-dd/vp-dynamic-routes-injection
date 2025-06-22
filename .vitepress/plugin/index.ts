@@ -39,9 +39,9 @@ This is the content for ${slug}
       return { build: { rollupOptions: { input } } }
     },
 
-    configResolved(resolved) {
-      const siteConfig = resolved.vitepress
-      if (!siteConfig || !siteConfig.__dirty) return
+    configResolved(config) {
+      const siteConfig = config.vitepress
+      if (!siteConfig?.__dirty) return
 
       siteConfig.pages.push(...pages)
       siteConfig.dynamicRoutes.push(
