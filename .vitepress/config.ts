@@ -1,4 +1,4 @@
-import path from 'node:path'
+import { resolve } from 'node:path'
 import { type PluginOption } from 'vite'
 import { defineConfig, type SiteConfig } from 'vitepress'
 
@@ -10,14 +10,14 @@ export default defineConfig({
 })
 
 function injectDynamicRoutes(slugs: string[]): PluginOption {
-  const virtualRoute = path.resolve(__dirname, './internal/[slug].md')
+  const route = resolve(__dirname, './internal/[slug].md')
 
   const routes = slugs.map((slug) => {
-    const page = `foo/${slug}.md`
+    const path = `foo/${slug}.md`
 
     return {
-      path: page,
-      route: virtualRoute,
+      path,
+      route,
       loaderPath: '/dev/null',
       params: { slug },
       content: `\
@@ -40,7 +40,7 @@ This is the content for ${slug}
 
     config(config) {
       const input = Object.fromEntries(
-        pages.map((page) => [page.replace(/\//g, '_'), path.resolve(config.root!, page)])
+        pages.map((page) => [page.replace(/\//g, '_'), resolve(config.root!, page)])
       )
 
       return { build: { rollupOptions: { input } } }
@@ -52,7 +52,7 @@ This is the content for ${slug}
 
       siteConfig.pages.push(...pages)
       siteConfig.dynamicRoutes.push(
-        ...routes.map((r) => ({ ...r, fullPath: path.resolve(siteConfig.srcDir, r.path) }))
+        ...routes.map((r) => ({ ...r, fullPath: resolve(siteConfig.srcDir, r.path) }))
       )
     }
   }
