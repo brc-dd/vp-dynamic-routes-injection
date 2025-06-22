@@ -14,8 +14,26 @@ function injectDynamicRoutes(slugs: string[]): PluginOption {
 
   return {
     name: 'custom:inject-dynamic-routes',
+    config(config) {
+      return {
+        build: {
+          rollupOptions: {
+            input: Object.fromEntries(
+              slugs.map((slug) => [
+                `foo/${slug}.md`.replace(/\//g, '_'),
+                path.resolve(config.root!, `foo/${slug}.md`)
+              ])
+            )
+          }
+        }
+      }
+    },
     configResolved(config) {
       const siteConfig = config.vitepress!
+      siteConfig.pages = siteConfig.pages.filter((page) => !page.startsWith('foo/'))
+      siteConfig.dynamicRoutes = siteConfig.dynamicRoutes.filter(
+        (route) => !route.path.startsWith('foo/')
+      )
       siteConfig.pages.push(...slugs.map((slug) => `foo/${slug}.md`))
       siteConfig.dynamicRoutes.push(
         ...slugs.map((slug) => ({
