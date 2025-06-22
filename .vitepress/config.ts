@@ -10,39 +10,17 @@ export default defineConfig({
 })
 
 function injectDynamicRoutes(slugs: string[]): PluginOption {
-  const route = path.resolve(__dirname, './internal/[slug].md')
+  const virtualRoute = path.resolve(__dirname, './internal/[slug].md')
 
-  return {
-    name: 'custom:inject-dynamic-routes',
-    config(config) {
-      return {
-        build: {
-          rollupOptions: {
-            input: Object.fromEntries(
-              slugs.map((slug) => [
-                `foo/${slug}.md`.replace(/\//g, '_'),
-                path.resolve(config.root!, `foo/${slug}.md`)
-              ])
-            )
-          }
-        }
-      }
-    },
-    configResolved(config) {
-      const siteConfig = config.vitepress!
-      siteConfig.pages = siteConfig.pages.filter((page) => !page.startsWith('foo/'))
-      siteConfig.dynamicRoutes = siteConfig.dynamicRoutes.filter(
-        (route) => !route.path.startsWith('foo/')
-      )
-      siteConfig.pages.push(...slugs.map((slug) => `foo/${slug}.md`))
-      siteConfig.dynamicRoutes.push(
-        ...slugs.map((slug) => ({
-          path: `foo/${slug}.md`,
-          fullPath: `${siteConfig.srcDir}/foo/${slug}.md`,
-          route,
-          loaderPath: '/dev/null',
-          params: { slug },
-          content: `\
+  const routes = slugs.map((slug) => {
+    const page = `foo/${slug}.md`
+
+    return {
+      path: page,
+      route: virtualRoute,
+      loaderPath: '/dev/null',
+      params: { slug },
+      content: `\
 ---
 description: This is the description for ${slug}
 ---
@@ -51,9 +29,31 @@ description: This is the description for ${slug}
 
 This is the content for ${slug}
 `
-        }))
+    }
+  })
+
+  const pages = routes.map((route) => route.path)
+
+  return {
+    name: 'vitepress:inject-dynamic-routes',
+    enforce: 'pre',
+
+    config(config) {
+      const input = Object.fromEntries(
+        pages.map((page) => [page.replace(/\//g, '_'), path.resolve(config.root!, page)])
       )
-      siteConfig.__dirty = true
+
+      return { build: { rollupOptions: { input } } }
+    },
+
+    configResolved(resolved) {
+      const siteConfig = resolved.vitepress
+      if (!siteConfig || !siteConfig.__dirty) return
+
+      siteConfig.pages.push(...pages)
+      siteConfig.dynamicRoutes.push(
+        ...routes.map((r) => ({ ...r, fullPath: path.resolve(siteConfig.srcDir, r.path) }))
+      )
     }
   }
 }
